@@ -9,28 +9,20 @@ class VehicleZ {
   float r;
   float maxforce;    // Maximum steering force
   float maxspeed;    // Maximum speed
-  boolean cFlag;
-  int currentPath;
-  int completeRound;
-  int currentTheta = 0;
-  int initialTheta;
-  int compartmentNo;
-  PVector reference = new PVector(540,360);
+  
+  int currCompartment;
+  int oldCompartment;
     // Constructor initialize all values
-  VehicleZ( PVector l, float ms, float mf, boolean flag) {
+  VehicleZ( PVector l, float ms, float mf) {
     
     position = l.get();
-    r = 12;
+    r = 6;
     maxspeed = ms;
     maxforce = mf;
     acceleration = new PVector(0, 0);
     velocity = new PVector(maxspeed, 0);
-    
-    cFlag = flag;
-    currentPath=0;
-    completeRound=0;
-    PVector direct = PVector.sub(position,reference);
-    initialTheta = (int)degrees(PVector.angleBetween(direct,reference));
+    currCompartment = 0;
+    oldCompartment = 0;
   }
 
   // A function to deal with path following and separation
@@ -45,8 +37,7 @@ class VehicleZ {
     // Accumulate in acceleration
     applyForce(f);
     applyForce(s);
-    PVector direct = PVector.sub(position,reference);
-    currentTheta = (int)degrees(PVector.angleBetween(direct,reference));
+    
   }
 
   void applyForce(PVector force) {
@@ -229,10 +220,7 @@ class VehicleZ {
 
   void render() {
     // Simpler boid is just a circle
-    if(cFlag)
-      fill(221,21,121);
-    else
-      fill(0,255,255);
+    fill(0,255,255);
     stroke(0);
     pushMatrix();
     translate(position.x, position.y);
