@@ -1,7 +1,19 @@
 //remedy
 
 class VehicleZ {
-
+  
+  int colors[][] = {
+  {0,255,0},
+  {255,0,0},
+  {0,0,255},
+  {255,255,0},
+  {255,0,255},
+  {0,255,255},
+  {45,46,47},
+  {87,78,89},
+  {67,34,34},
+  {76,56,43},
+  };
   // All the usual stuff
   PVector position;
   PVector velocity;
@@ -9,11 +21,11 @@ class VehicleZ {
   float r;
   float maxforce;    // Maximum steering force
   float maxspeed;    // Maximum speed
-  
+  int groupId;
   int currCompartment;
   int oldCompartment;
     // Constructor initialize all values
-  VehicleZ( PVector l, float ms, float mf) {
+  VehicleZ( PVector l, float ms, float mf, int gid) {
     
     position = l.get();
     r = 6;
@@ -23,6 +35,8 @@ class VehicleZ {
     velocity = new PVector(maxspeed, 0);
     currCompartment = 0;
     oldCompartment = 0;
+    
+    groupId = gid;
   }
 
   // A function to deal with path following and separation
@@ -220,7 +234,7 @@ class VehicleZ {
 
   void render() {
     // Simpler boid is just a circle
-    fill(0,255,255);
+    fill(colors[groupId][0],colors[groupId][1],colors[groupId][2]);
     stroke(0);
     pushMatrix();
     translate(position.x, position.y);

@@ -5,18 +5,15 @@ boolean debug = false;
 int noOfPaths = 3;
 // A path object (series of connected points)
 Path paths[] = new Path[noOfPaths];
-int xCenter;
-int yCenter;
-int bigR;
-int pathW;
-int pathDel;
-float[][] line;
-int compartments;
-int compVC[];
-float theta;
-int humans;
-int time;
-PVector ENTRY,EXIT;
+
+int xCenter;int yCenter;
+int bigR;int pathW;int pathDel;
+float[][] line;int compartments;int compVC[];float theta;
+int humans;int time;
+
+PVector ENTRY[];PVector EXIT;int gCount;int gRadius;
+
+int noOfGroups;int groupSize[];
 // Two vehicles
 ArrayList<VehicleZ> vehicles;
 
@@ -26,13 +23,11 @@ void setup() {
   xCenter = width / 2;
   yCenter = height / 2;
   
-  compartments = 10;
-  compVC = new int[compartments];
+  compartments = 10;  compVC = new int[compartments];
   theta = 2*PI/compartments;
   
-  bigR = 300;
-  pathW = 40;
-  pathDel =5;
+  bigR = 300;  pathW = 40;  pathDel =5;
+  
   // Call a function to generate new Path object
   int pathR = bigR;
   for(int i =0;i<noOfPaths;i++){
@@ -42,15 +37,22 @@ void setup() {
     pathR -= pathDel;
   }
   
+  gCount = 0; gRadius = 10;
+  ENTRY = new PVector[4];
+  ENTRY[0] = new PVector(xCenter-bigR,yCenter);
+  ENTRY[1] = new PVector(xCenter+bigR,yCenter);
+  ENTRY[2] = new PVector(xCenter,yCenter-bigR);
+  ENTRY[3] = new PVector(xCenter,yCenter+bigR);
   
-  ENTRY = new PVector(xCenter-bigR,yCenter-bigR);
   EXIT = new PVector(xCenter+bigR,yCenter+bigR);
   
   
   // We are now making random vehicles and storing them in an ArrayList
   vehicles = new ArrayList<VehicleZ>();
-  humans = 0;
-  time = 0;
+  humans = 0;  time = 0;
+  
+  noOfGroups = 10;
+  groupSize = new int[noOfGroups];
 }
 
 void draw() {
@@ -59,12 +61,17 @@ void draw() {
   // Display the path
   for(Path x:paths)
     x.display();
-  if(time%5==0&&humans<100&&time<5000)
-  {
-    newVehicle(ENTRY.x,ENTRY.y);
-  }
+    if(time%3==0){
+      if(humans<200)
+      {
+        addNewVehicle(false);
+      }
+      else{
+        addNewVehicle(true);
+      }
+    }
   drawLine();
-  drawEntryExit();
+  //drawEntryExit();
   for (VehicleZ v : vehicles) {
     v.currCompartment = findCompartment(v);
     if(v.currCompartment!=v.oldCompartment){
@@ -80,12 +87,12 @@ void draw() {
   }
   
   drawTextBox();
-  
+  drawEntryExit();  
   time++;
 }
 
 void drawTextBox(){
-  
+  PVector ENTRY = new PVector(xCenter-bigR,yCenter-bigR);
   float X = ENTRY.x+2*(bigR+pathW);
   float Y = ENTRY.y;
   fill(255);
@@ -100,13 +107,9 @@ void drawTextBox(){
   
 }
 void drawEntryExit(){
-  rect(ENTRY.x,ENTRY.y,25,25);
-  rect(EXIT.x,EXIT.y,25,25);
-  
-  fill(0);
-  textAlign(CENTER);
-  text("ENTRY",ENTRY.x-45,ENTRY.y+20);
-  text("EXIT",EXIT.x+45,EXIT.y+20);
+  noFill();
+  for(int i=0;i<4;i++)
+  ellipse(ENTRY[i].x,ENTRY[i].y,gRadius,gRadius);
 }
 void drawLine(){
   line = new float[compartments][4];
@@ -157,12 +160,32 @@ void newPathCircle(Path path, float radius){
     path.addPoint(centreX+dx,centreY+dy);
   }
 }
-
-void newVehicle(float x, float y) {
+void addNewVehicle(boolean check){
+  if(check){
+    PVector gate = ENTRY[gCount];
+    for(VehicleZ q:vehicles){
+      PVector pos = PVector.sub(gate,q.position);
+      int dist = (int)pos.mag();
+      if(dist<=gRadius&&groupSize[q.groupId]<=50){
+        newVehicle(gate.x,gate.y,q.groupId);
+        //System.out.println("YES");
+        break;
+      }
+    }
+  }
+  else{
+    newVehicle(ENTRY[gCount].x,ENTRY[gCount].y,(int)random(0,noOfGroups));
+  }
+  
+  gCount++;
+  gCount%=4;
+}
+void newVehicle(float x, float y, int gid) {
+  groupSize[gid]++;
   //float maxspeed = random(2,4);
-  float maxspeed = 3;
-  float maxforce = 0.3;
-  VehicleZ z = new VehicleZ(new PVector(x,y),maxspeed,maxforce); 
+  float maxspeed = 2;
+  float maxforce = 0.1;
+  VehicleZ z = new VehicleZ(new PVector(x,y),maxspeed,maxforce,gid); 
   vehicles.add(z);
   compVC[z.currCompartment]++;
   humans++;
@@ -181,16 +204,15 @@ void keyPressed() {
   if (key =='r' ){
     vehicles = new ArrayList<VehicleZ>();
     Arrays.fill(compVC,0);
-    newVehicle(ENTRY.x,ENTRY.y);
+    addNewVehicle(false);
     humans = 1;
-    time = 5000;
-    
   }
   if (key =='n'){
-    newVehicle(ENTRY.x,ENTRY.y);
+    addNewVehicle(false);
   }
 }
 
 void mousePressed() {
-  newVehicle(mouseX,mouseY);
+  //newVehicle(mouseX,mouseY);
+  addNewVehicle(false);
 }
