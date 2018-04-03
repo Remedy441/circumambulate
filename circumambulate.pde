@@ -13,7 +13,7 @@ int humans;int time;
 
 PVector ENTRY[];PVector EXIT;int gCount;int gRadius;
 
-int noOfGroups;int groupSize[];
+int noOfGroups;int groupSize[];int maxGroupSize;
 // Two vehicles
 ArrayList<VehicleZ> vehicles;
 
@@ -51,7 +51,7 @@ void setup() {
   vehicles = new ArrayList<VehicleZ>();
   humans = 0;  time = 0;
   
-  noOfGroups = 10;
+  noOfGroups = 10; maxGroupSize = 100;
   groupSize = new int[noOfGroups];
 }
 
@@ -80,8 +80,9 @@ void draw() {
       v.oldCompartment=v.currCompartment;
     }
     Path pathx = paths[0];
+    int radii[] = {bigR-pathW, bigR+pathW};
     // Path following and separation are worked on in this function
-    v.applyBehaviors(vehicles,pathx);
+    v.applyBehaviors(vehicles,radii);
     // Call the generic run method (update, borders, display, etc.)
     v.run();
   }
@@ -166,7 +167,7 @@ void addNewVehicle(boolean check){
     for(VehicleZ q:vehicles){
       PVector pos = PVector.sub(gate,q.position);
       int dist = (int)pos.mag();
-      if(dist<=gRadius&&groupSize[q.groupId]<=50){
+      if(dist<=gRadius&&groupSize[q.groupId]<=maxGroupSize){
         newVehicle(gate.x,gate.y,q.groupId);
         //System.out.println("YES");
         break;
@@ -184,7 +185,7 @@ void newVehicle(float x, float y, int gid) {
   groupSize[gid]++;
   //float maxspeed = random(2,4);
   float maxspeed = 2;
-  float maxforce = 0.1;
+  float maxforce = 0.5;
   VehicleZ z = new VehicleZ(new PVector(x,y),maxspeed,maxforce,gid); 
   vehicles.add(z);
   compVC[z.currCompartment]++;
